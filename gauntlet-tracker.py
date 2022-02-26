@@ -4,8 +4,6 @@ from PyQt5.QtGui import *
 import csv
 
 
-## TODO : Add a graph function to show w/l over time
-## TODO : Add a label that shows w/l over the last x days
 ## TODO : add more??
 
 class app_gui(QDialog):
@@ -18,12 +16,17 @@ class app_gui(QDialog):
         self.tableWidget = None
         self.wins = 0
         self.losses = 0
+        self.wlratio = 0
+        self.textBoxValue = ''
+        self.parameters = QLineEdit(f'Parameter for W/L')
+        self.ratios = QLabel(f'W/l over last x days {self.wlratio}')
         self.win_loss = QLabel(f'Wins: {self.wins} Losses: {self.losses}')
+        self.ratio_button = QPushButton("Set x")
         self.win_button = QPushButton("Win")
         self.loss_button = QPushButton("Loss")
         self.save_button = QPushButton("Save")
         self.load_button = QPushButton("Load")
-        self.setFixedSize(800, 600)
+        self.setFixedSize(1000, 600)
         self.originalPalette = QApplication.palette()
         styleComboBox = QComboBox()
         styleComboBox.addItems(QStyleFactory.keys())
@@ -42,6 +45,32 @@ class app_gui(QDialog):
         self.loss_button.clicked.connect(self.set_loss_text)
         self.save_button.clicked.connect(self.save)
         self.load_button.clicked.connect(self.load)
+        self.ratio_button.clicked.connect(self.ratio)
+
+    def ratio(self):
+        tallywins = 0
+        tallyloss = 0
+        self.textBoxValue = self.parameters.text()
+        try:
+            self.wlratio = int(self.textBoxValue)
+        except Exception as e:
+            QMessageBox.question(self, 'Message', 'Couldnt read value, put a positive integer in')
+        now = QDateTime.currentDateTime()
+        print(now)
+        for row in range(1, self.currentRow):
+            date = QDateTime.fromString(self.tableWidget.item(row, 1).text())
+            delta = date.daysTo(now)
+            print(delta)
+            if self.wlratio >= delta:
+                print(self.tableWidget.item(row, 0).text())
+                if self.tableWidget.item(row, 0).text() == "Win":
+                    tallywins += 1
+                    print(tallywins)
+                else:
+                    tallyloss += 1
+                    print(tallyloss)
+        self.wlratio = (tallywins / (tallyloss + tallywins)) * 100
+        self.ratios.setText(f'W/l over last x days {int(self.wlratio)}%')
 
     def save(self):
         if self.file_path is None:
@@ -79,12 +108,16 @@ class app_gui(QDialog):
         layout.setRowStretch(0, 300)
         layout.addWidget(self.win_button, 0, 0)
         layout.addWidget(self.loss_button, 0, 1)
-        layout.addWidget(self.win_loss, 1, 0, 1, 2)
-        layout.addWidget(self.save_button, 2, 0)
-        layout.addWidget(self.load_button, 2, 1)
+        layout.addWidget(self.win_loss, 1, 0)
+        layout.addWidget(self.ratios, 1, 1)
+        layout.addWidget(self.parameters, 2, 0)
+        layout.addWidget(self.ratio_button, 2, 1)
+        layout.addWidget(self.save_button, 3, 0)
+        layout.addWidget(self.load_button, 3, 1)
         self.right_box.setLayout(layout)
         self.win_button.setFixedSize(200, 200)
         self.loss_button.setFixedSize(200, 200)
+        self.parameters.setFixedSize(200, 80)
         self.win_button.setFont(QFont("Times", 20, QFont.Bold))
         self.loss_button.setFont(QFont("Times", 20, QFont.Bold))
 
