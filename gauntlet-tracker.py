@@ -21,12 +21,14 @@ class app_gui(QDialog):
         self.parameters = QLineEdit(f'Parameter for W/L')
         self.ratios = QLabel(f'W/l over last x days {self.wlratio}')
         self.win_loss = QLabel(f'Wins: {self.wins} Losses: {self.losses}')
-        self.ratio_button = QPushButton("Set x")
+        self.ratio_button = QPushButton("Set parameter")
         self.win_button = QPushButton("Win")
         self.loss_button = QPushButton("Loss")
         self.save_button = QPushButton("Save")
         self.load_button = QPushButton("Load")
-        self.setFixedSize(1000, 600)
+        self.width = 1000
+        self.height = 600
+        self.setFixedSize(self.width, self.height)
         self.originalPalette = QApplication.palette()
         styleComboBox = QComboBox()
         styleComboBox.addItems(QStyleFactory.keys())
@@ -157,6 +159,7 @@ class app_gui(QDialog):
         self.left_box.addTab(tab1, "Spreadsheet")
         self.create_main_layout()
         self.setWindowTitle("Gauntlet Tracker")
+        self.left_box.setFixedSize(self.width//2, self.height)
 
     def create_main_layout(self):
         self.main_layout = QGridLayout()
