@@ -18,10 +18,13 @@ class app_gui(QDialog):
         self.wins = 0
         self.losses = 0
         self.wlratio = 0
+        self.dailywins = 0
+        self.dailyloss = 0
         self.textBoxValue = ''
         self.parameters = QLineEdit(f'1')
         self.ratios = QLabel(f'W/l over last x days {self.wlratio}')
-        self.win_loss = QLabel(f'Wins: {self.wins} Losses: {self.losses}')
+        self.win_loss = QLabel(f'Wins: {self.wins} Losses: {self.losses}                  W/l for the day : {self.dailywins}/{self.dailyloss} ')
+        self.win_loss.setWordWrap(True)
         self.ratio_button = QPushButton("Set parameter")
         self.win_button = QPushButton("Win")
         self.loss_button = QPushButton("Loss")
@@ -51,6 +54,8 @@ class app_gui(QDialog):
     def ratio(self):
         tallywins = 0
         tallyloss = 0
+        self.dailywins = 0
+        self.dailyloss = 0
         self.textBoxValue = self.parameters.text()
         try:
             self.wlratio = int(self.textBoxValue)
@@ -68,8 +73,15 @@ class app_gui(QDialog):
                         tallywins += 1
                     else:
                         tallyloss += 1
+                if delta <= 1:
+                    if self.tableWidget.item(row, 0).text() == "Win":
+                        self.dailywins += 1
+                    else:
+                        self.dailyloss += 1
             self.wlratio = (tallywins / (tallyloss + tallywins)) * 100
             self.ratios.setText(f'W/l over last {days} days {int(self.wlratio)}%')
+            self.win_loss.setText(f'Wins: {self.wins} Losses: {self.losses}                  W/l for the day : {self.dailywins}/{self.dailyloss} ')
+            self.check_day()
 
     def save(self):
         if self.file_path is None:
@@ -125,7 +137,7 @@ class app_gui(QDialog):
         self.wins += 1
         self.tableWidget.setItem(self.currentRow, 0, QTableWidgetItem("Win"))
         self.tableWidget.setItem(self.currentRow, 1, QTableWidgetItem(datetime.toString()))
-        self.win_loss.setText(f'Wins: {self.wins} Losses: {self.losses}')
+        self.win_loss.setText(f'Wins: {self.wins} Losses: {self.losses}           W/l for the day : {self.dailywins}/{self.dailyloss} ')
         self.currentRow += 1
         self.ratio()
 
@@ -134,11 +146,12 @@ class app_gui(QDialog):
         self.losses += 1
         self.tableWidget.setItem(self.currentRow, 0, QTableWidgetItem("Loss"))
         self.tableWidget.setItem(self.currentRow, 1, QTableWidgetItem(datetime.toString()))
-        self.win_loss.setText(f'Wins: {self.wins} Losses: {self.losses}')
+        self.win_loss.setText(f'Wins: {self.wins} Losses: {self.losses}            W/l for the day : {self.dailywins}/{self.dailyloss} ')
         self.currentRow += 1
         self.ratio()
 
-    def update_data(self):
+    def check_day(self):
+
         pass
 
     def create_left_box(self):
