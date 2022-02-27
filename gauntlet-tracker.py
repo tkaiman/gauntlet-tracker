@@ -4,11 +4,12 @@ from PyQt5.QtGui import *
 import csv
 
 
-## TODO : add more??
+# TODO : add more??
 
 class app_gui(QDialog):
     def __init__(self, parent=None):
         super(app_gui, self).__init__(parent)
+        self.main_layout = None
         self.left_box = None
         self.right_box = None
         self.file_path = None
@@ -18,7 +19,7 @@ class app_gui(QDialog):
         self.losses = 0
         self.wlratio = 0
         self.textBoxValue = ''
-        self.parameters = QLineEdit(f'Parameter for W/L')
+        self.parameters = QLineEdit(f'1')
         self.ratios = QLabel(f'W/l over last x days {self.wlratio}')
         self.win_loss = QLabel(f'Wins: {self.wins} Losses: {self.losses}')
         self.ratio_button = QPushButton("Set parameter")
@@ -39,8 +40,6 @@ class app_gui(QDialog):
         self.useStylePaletteCheckBox = QCheckBox("$Use Style's standard palette")
         self.useStylePaletteCheckBox.setChecked(True)
 
-        disableWidgetsCheckBox = QCheckBox("Disable widgets")
-
         self.create_right_box()
         self.create_left_box()
         self.win_button.clicked.connect(self.set_win_text)
@@ -55,24 +54,22 @@ class app_gui(QDialog):
         self.textBoxValue = self.parameters.text()
         try:
             self.wlratio = int(self.textBoxValue)
-        except Exception as e:
-            QMessageBox.question(self, 'Message', 'Couldnt read value, put a positive integer in')
-        now = QDateTime.currentDateTime()
-        print(now)
-        for row in range(1, self.currentRow):
-            date = QDateTime.fromString(self.tableWidget.item(row, 1).text())
-            delta = date.daysTo(now)
-            print(delta)
-            if self.wlratio >= delta:
-                print(self.tableWidget.item(row, 0).text())
-                if self.tableWidget.item(row, 0).text() == "Win":
-                    tallywins += 1
-                    print(tallywins)
-                else:
-                    tallyloss += 1
-                    print(tallyloss)
-        self.wlratio = (tallywins / (tallyloss + tallywins)) * 100
-        self.ratios.setText(f'W/l over last x days {int(self.wlratio)}%')
+        except ValueError as e:
+            print(e)
+            QMessageBox.critical(self, 'Error', 'Couldnt read value, put a positive integer in')
+        if self.wlratio != 0:
+            now = QDateTime.currentDateTime()
+            days = self.wlratio
+            for row in range(1, self.currentRow):
+                date = QDateTime.fromString(self.tableWidget.item(row, 1).text())
+                delta = date.daysTo(now)
+                if self.wlratio >= delta:
+                    if self.tableWidget.item(row, 0).text() == "Win":
+                        tallywins += 1
+                    else:
+                        tallyloss += 1
+            self.wlratio = (tallywins / (tallyloss + tallywins)) * 100
+            self.ratios.setText(f'W/l over last {days} days {int(self.wlratio)}%')
 
     def save(self):
         if self.file_path is None:
@@ -130,6 +127,7 @@ class app_gui(QDialog):
         self.tableWidget.setItem(self.currentRow, 1, QTableWidgetItem(datetime.toString()))
         self.win_loss.setText(f'Wins: {self.wins} Losses: {self.losses}')
         self.currentRow += 1
+        self.ratio()
 
     def set_loss_text(self):
         datetime = QDateTime.currentDateTime()
@@ -138,6 +136,7 @@ class app_gui(QDialog):
         self.tableWidget.setItem(self.currentRow, 1, QTableWidgetItem(datetime.toString()))
         self.win_loss.setText(f'Wins: {self.wins} Losses: {self.losses}')
         self.currentRow += 1
+        self.ratio()
 
     def update_data(self):
         pass
@@ -159,7 +158,7 @@ class app_gui(QDialog):
         self.left_box.addTab(tab1, "Spreadsheet")
         self.create_main_layout()
         self.setWindowTitle("Gauntlet Tracker")
-        self.left_box.setFixedSize(self.width//2, self.height)
+        self.left_box.setFixedSize(self.width // 2, self.height)
 
     def create_main_layout(self):
         self.main_layout = QGridLayout()
