@@ -23,7 +23,7 @@ class app_gui(QDialog):
         self.textBoxValue = ''
         self.parameters = QLineEdit(f'1')
         self.ratios = QLabel(f'W/l over last x days {self.wlratio}')
-        self.win_loss = QLabel(f'Wins: {self.wins} Losses: {self.losses}                  W/l for the day : {self.dailywins}/{self.dailyloss} ')
+        self.win_loss = QLabel(f'Wins: {self.wins} Losses: {self.losses}                                         W/l for the day : {self.dailywins}/{self.dailyloss} ')
         self.win_loss.setWordWrap(True)
         self.ratio_button = QPushButton("Set parameter")
         self.win_button = QPushButton("Win")
@@ -73,14 +73,14 @@ class app_gui(QDialog):
                         tallywins += 1
                     else:
                         tallyloss += 1
-                if delta <= 1:
+                if delta < 1:
                     if self.tableWidget.item(row, 0).text() == "Win":
                         self.dailywins += 1
                     else:
                         self.dailyloss += 1
             self.wlratio = (tallywins / (tallyloss + tallywins)) * 100
             self.ratios.setText(f'W/l over last {days} days {int(self.wlratio)}%')
-            self.win_loss.setText(f'Wins: {self.wins} Losses: {self.losses}                  W/l for the day : {self.dailywins}/{self.dailyloss} ')
+            self.win_loss.setText(f'Wins: {self.wins} Losses: {self.losses}                                               W/l for the day : {self.dailywins}/{self.dailyloss} ')
             self.check_day()
 
     def save(self):
@@ -109,6 +109,12 @@ class app_gui(QDialog):
                 print(row)
                 self.tableWidget.setItem(self.currentRow, 0, QTableWidgetItem(row[0]))
                 self.tableWidget.setItem(self.currentRow, 1, QTableWidgetItem(row[1]))
+                if row[0] == "Win":
+                    self.wins += 1
+                    self.tableWidget.item(self.currentRow, 0).setBackground(QColor(0, 255, 0, 127))
+                elif row[0] == "Loss":
+                    self.losses += 1
+                    self.tableWidget.item(self.currentRow, 0).setBackground(QColor(255, 0, 0, 127))
                 self.currentRow += 1
         self.load_button.setEnabled(False)
 
@@ -136,6 +142,7 @@ class app_gui(QDialog):
         datetime = QDateTime.currentDateTime()
         self.wins += 1
         self.tableWidget.setItem(self.currentRow, 0, QTableWidgetItem("Win"))
+        self.tableWidget.item(self.currentRow, 0).setBackground(QColor(0, 255, 0, 127))
         self.tableWidget.setItem(self.currentRow, 1, QTableWidgetItem(datetime.toString()))
         self.win_loss.setText(f'Wins: {self.wins} Losses: {self.losses}           W/l for the day : {self.dailywins}/{self.dailyloss} ')
         self.currentRow += 1
@@ -145,6 +152,7 @@ class app_gui(QDialog):
         datetime = QDateTime.currentDateTime()
         self.losses += 1
         self.tableWidget.setItem(self.currentRow, 0, QTableWidgetItem("Loss"))
+        self.tableWidget.item(self.currentRow, 0).setBackground(QColor(255, 0, 0, 127))
         self.tableWidget.setItem(self.currentRow, 1, QTableWidgetItem(datetime.toString()))
         self.win_loss.setText(f'Wins: {self.wins} Losses: {self.losses}            W/l for the day : {self.dailywins}/{self.dailyloss} ')
         self.currentRow += 1
